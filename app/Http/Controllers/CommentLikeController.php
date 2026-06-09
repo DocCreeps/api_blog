@@ -8,7 +8,7 @@ class CommentLikeController extends Controller
 {
     public function toggle(Comment $comment)
     {
-        $userId = 1; // Temporaire
+        $userId = auth()->id();
         $like = $comment->likes()->where('user_id', $userId)->first();
         if ($like) {
             $like->delete();

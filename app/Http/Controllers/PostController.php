@@ -3,39 +3,31 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
+use App\Http\Requests\StorePostRequest;  
+use App\Http\Requests\UpdatePostRequest;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class PostController extends Controller
 {
+    use AuthorizesRequests;
+
     public function index()
     {
-        // On charge les relations essentielles + le compte des likes et commentaires
         $posts = Post::with(['user', 'category', 'tags'])
             ->withCount(['likes', 'comments'])
             ->where('status', 'published')
             ->latest()
-            ->paginate(10); // Pagination indispensable en production
+            ->paginate(10);
 
         return response()->json($posts, 200);
     }
 
-    public function store(Request $request)
+    public function store(StorePostRequest $request)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'category_id' => 'required|exists:categories,id',
-            'status' => 'in:draft,published',
-            'tags' => 'array', // Doit être un tableau d'IDs de tags (ex: [1, 3])
-            'tags.*' => 'exists:tags,id'
-        ]);
 
-        // On injecte temporairement l'user_id à 1
-        $validated['user_id'] = 1;
+        $post = $request->user()->posts()->create($request->validated());
 
-        $post = Post::create($validated);
-
-        // Synchronisation des tags dans la table pivot
         if (!empty($request->tags)) {
             $post->tags()->sync($request->tags);
         }
@@ -48,18 +40,12 @@ class PostController extends Controller
         return response()->json($post->load(['user', 'category', 'tags', 'comments.replies']), 200);
     }
 
-    public function update(Request $request, Post $post)
+    // Utilisation de UpdatePostRequest
+    public function update(UpdatePostRequest $request, Post $post)
     {
-        $validated = $request->validate([
-            'title' => 'string|max:255',
-            'content' => 'string',
-            'category_id' => 'exists:categories,id',
-            'status' => 'in:draft,published',
-            'tags' => 'array',
-            'tags.*' => 'exists:tags,id'
-        ]);
+        $this->authorize('update', $post);
 
-        $post->update($validated);
+        $post->update($request->validated());
 
         if (isset($request->tags)) {
             $post->tags()->sync($request->tags);
@@ -70,7 +56,9 @@ class PostController extends Controller
 
     public function destroy(Post $post)
     {
-        $post->delete(); // Soft delete l'article
+        $this->authorize('delete', $post);
+
+        $post->delete();
         return response()->json(['message' => 'Article archivé (Soft Delete)'], 200);
     }
 }

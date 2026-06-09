@@ -8,7 +8,7 @@ class PostLikeController extends Controller
 {
     public function toggle(Post $post)
     {
-        $userId = 1; // Temporaire
+        $userId = auth()->id();
         $like = $post->likes()->where('user_id', $userId)->first();
         if ($like) {
             $like->delete();
