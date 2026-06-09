@@ -1,0 +1,84 @@
+"--- LES TYPES DE DONNÉES (MODÈLES) ---"
+
+type User {
+    id: ID!
+    name: String!
+    email: String!
+    posts: [Post!]! @hasMany
+    comments: [Comment!]! @hasMany
+}
+
+type Category {
+    id: ID!
+    name: String!
+    slug: String!
+    posts: [Post!]! @hasMany
+}
+
+type Tag {
+    id: ID!
+    name: String!
+    slug: String!
+    posts: [Post!]! @belongsToMany
+}
+
+type Post {
+    id: ID!
+    title: String!
+    slug: String!
+    content: String!
+    status: String!
+    user: User! @belongsTo
+    category: Category! @belongsTo
+    tags: [Tag!]! @belongsToMany
+    comments: [Comment!]! @hasMany
+}
+
+type Comment {
+    id: ID!
+    content: String!
+    user: User! @belongsTo
+    post: Post! @belongsTo
+    parent: Comment @belongsTo
+    replies: [Comment!]! @hasMany
+}
+
+
+"--- REQUÊTES (LECTURE : ÉQUIVALENT DES GET) ---"
+
+type Query {
+    "Lister tous les articles publiés (avec pagination magique)"
+    posts: [Post!]! @paginate(defaultCount: 10) @where(operator: "=", clause: "status", value: "published")
+
+    "Trouver un article spécifique par son slug"
+    post(slug: String! @eq): Post @find
+
+    "Lister toutes les catégories"
+    categories: [Category!]! @all
+
+    "Lister tous les tags"
+    tags: [Tag!]! @all
+}
+
+
+"--- MUTATIONS (ÉCRITURE : ÉQUIVALENT DES POST/PUT/DELETE) ---"
+
+type Mutation {
+    "Créer un article (Sécurisé par Sanctum)"
+    createPost(
+        title: String! @rules(apply: ["required", "string", "max:255"])
+        content: String! @rules(apply: ["required"])
+        category_id: ID! @rules(apply: ["required", "exists:categories,id"])
+        status: String @rules(apply: ["in:draft,published"])
+    ): Post @create @guard(with: ["sanctum"]) @inject(context: "user.id", path: "user_id")
+
+    "Supprimer un article (Soft Delete automatique)"
+    deletePost(id: ID!): Post @delete @guard(with: ["sanctum"])
+
+    "Ajouter un commentaire ou une réponse"
+    createComment(
+        post_id: ID! @rules(apply: ["required", "exists:posts,id"])
+        parent_id: ID @rules(apply: ["nullable", "exists:comments,id"])
+        content: String! @rules(apply: ["required", "string", "min:2"])
+    ): Comment @create @guard(with: ["sanctum"]) @inject(context: "user.id", path: "user_id")
+}

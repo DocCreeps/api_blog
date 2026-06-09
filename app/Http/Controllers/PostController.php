@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
-use App\Http\Requests\StorePostRequest;  
+use App\Http\Requests\StorePostRequest;
 use App\Http\Requests\UpdatePostRequest;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -12,6 +12,11 @@ class PostController extends Controller
 {
     use AuthorizesRequests;
 
+    /**
+     * Récupérer les articles.
+     * Cette route renvoie la liste des articles publiés, paginés par 10,
+     * avec leurs tags et catégories respectives.
+     */
     public function index()
     {
         $posts = Post::with(['user', 'category', 'tags'])
