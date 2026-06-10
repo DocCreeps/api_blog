@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Enums\PostStatus;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
 class Post extends Model
@@ -56,4 +57,7 @@ class Post extends Model
     {
         return $this->morphMany(Like::class, 'likeable');
     }
+    protected $casts = [
+        'status' => PostStatus::class,
+    ];
 }

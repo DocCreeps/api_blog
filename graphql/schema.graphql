@@ -1,25 +1,38 @@
-"--- LES TYPES DE DONNÉES (MODÈLES) ---"
+# ==============================================================================
+# SCALAIRES REQUIS (Indispensable pour la gestion des dates)
+# ==============================================================================
+scalar DateTime @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\DateTime")
+
+# ==============================================================================
+# --- LES TYPES DE DONNÉES ENTIÈREMENT SÉCURISÉS ---
+# ==============================================================================
 
 type User {
     id: ID!
     name: String!
     email: String!
-    posts: [Post!]! @hasMany
-    comments: [Comment!]! @hasMany
+    posts(status: PostStatus @eq): [Post!]! @hasMany @paginate(defaultCount: 10)
+    comments: [Comment!]! @hasMany @paginate(defaultCount: 20)
+    created_at: DateTime!
+    updated_at: DateTime!
 }
 
 type Category {
     id: ID!
     name: String!
     slug: String!
-    posts: [Post!]! @hasMany
+    posts(status: PostStatus @eq): [Post!]! @hasMany @paginate(defaultCount: 10)
+    created_at: DateTime!
+    updated_at: DateTime!
 }
 
 type Tag {
     id: ID!
     name: String!
     slug: String!
-    posts: [Post!]! @belongsToMany
+    posts(status: PostStatus @eq): [Post!]! @belongsToMany @paginate(defaultCount: 10)
+    created_at: DateTime!
+    updated_at: DateTime!
 }
 
 type Post {
@@ -27,11 +40,13 @@ type Post {
     title: String!
     slug: String!
     content: String!
-    status: String!
+    status: PostStatus! # <-- Ton Enum est conservé ici
     user: User! @belongsTo
     category: Category! @belongsTo
     tags: [Tag!]! @belongsToMany
-    comments: [Comment!]! @hasMany
+    comments: [Comment!]! @hasMany @paginate(defaultCount: 15)
+    created_at: DateTime!
+    updated_at: DateTime!
 }
 
 type Comment {
@@ -40,45 +55,79 @@ type Comment {
     user: User! @belongsTo
     post: Post! @belongsTo
     parent: Comment @belongsTo
-    replies: [Comment!]! @hasMany
+    replies: [Comment!]! @hasMany @paginate(defaultCount: 10)
+    created_at: DateTime!
+    updated_at: DateTime!
 }
 
+# ==============================================================================
+# ENUMS (Enregistré via la classe PHP pour une conversion bidirectionnelle)
+# ==============================================================================
+enum PostStatus {
+    DRAFT @enum(value: "draft")
+    PUBLISHED @enum(value: "published")
+    ARCHIVED @enum(value: "archived")
+}
 
-"--- REQUÊTES (LECTURE : ÉQUIVALENT DES GET) ---"
+# ==============================================================================
+# LES REQUÊTES (READ / GET)
+# ==============================================================================
 
 type Query {
-    "Lister tous les articles publiés (avec pagination magique)"
-    posts: [Post!]! @paginate(defaultCount: 10) @where(operator: "=", clause: "status", value: "published")
+    "Lister les articles. Sécurité par défaut : statut forcé à PUBLISHED si omis."
+    posts(
+        status: PostStatus = PUBLISHED @eq
+        category_id: ID @eq(key: "category_id")
+        search: String @where(operator: "like", key: "title")
+    ): [Post!]! @paginate(defaultCount: 10) @orderBy(column: "created_at", direction: DESC)
 
-    "Trouver un article spécifique par son slug"
-    post(slug: String! @eq): Post @find
+    "Trouver un article spécifique par son ID ou son Slug"
+    post(id: ID @eq, slug: String @eq): Post @find
 
-    "Lister toutes les catégories"
-    categories: [Category!]! @all
+    "Lister toutes les catégories avec option de tri alphabétique"
+    categories: [Category!]! @all @orderBy(column: "name", direction: ASC)
 
     "Lister tous les tags"
     tags: [Tag!]! @all
+
+    "Récupérer le profil de l'utilisateur actuellement connecté"
+    me: User @auth(guard: "sanctum")
 }
 
-
-"--- MUTATIONS (ÉCRITURE : ÉQUIVALENT DES POST/PUT/DELETE) ---"
+# ==============================================================================
+# LES MUTATIONS (WRITE / POST / PUT / DELETE)
+# ==============================================================================
 
 type Mutation {
-    "Créer un article (Sécurisé par Sanctum)"
+    "Créer un article"
     createPost(
-        title: String! @rules(apply: ["required", "string", "max:255"])
-        content: String! @rules(apply: ["required"])
+        title: String! @rules(apply: ["required", "string", "min:3", "max:255"])
+        content: String! @rules(apply: ["required", "string", "min:10"])
         category_id: ID! @rules(apply: ["required", "exists:categories,id"])
-        status: String @rules(apply: ["in:draft,published"])
-    ): Post @create @guard(with: ["sanctum"]) @inject(context: "user.id", path: "user_id")
+        status: PostStatus! @rules(apply: ["required"])
+        tags: [ID!] @rules(apply: ["sometimes", "array", "exists:tags,id"]) @belongsToMany(relation: "tags")
+    ): Post @create @guard(with: ["sanctum"]) @inject(context: "user.id", name: "user_id")
 
-    "Supprimer un article (Soft Delete automatique)"
-    deletePost(id: ID!): Post @delete @guard(with: ["sanctum"])
+    "Modifier un article"
+    updatePost(
+        id: ID! @rules(apply: ["required", "exists:posts,id"])
+        title: String @rules(apply: ["sometimes", "string", "min:3", "max:255"])
+        content: String @rules(apply: ["sometimes", "string", "min:10"])
+        category_id: ID @rules(apply: ["sometimes", "exists:categories,id"])
+        status: PostStatus @rules(apply: ["sometimes"])
+        tags: [ID!] @rules(apply: ["sometimes", "array", "exists:tags,id"]) @belongsToMany(relation: "tags")
+    ): Post @update @guard(with: ["sanctum"]) @can(ability: "update", find: "id")
 
-    "Ajouter un commentaire ou une réponse"
+    "Supprimer un article"
+    deletePost(id: ID! @rules(apply: ["required", "exists:posts,id"])): Post @delete @guard(with: ["sanctum"]) @can(ability: "delete", find: "id")
+
+    "Ajouter un commentaire"
     createComment(
         post_id: ID! @rules(apply: ["required", "exists:posts,id"])
         parent_id: ID @rules(apply: ["nullable", "exists:comments,id"])
-        content: String! @rules(apply: ["required", "string", "min:2"])
-    ): Comment @create @guard(with: ["sanctum"]) @inject(context: "user.id", path: "user_id")
+        content: String! @rules(apply: ["required", "string", "min:2", "max:1000"])
+    ): Comment @create @guard(with: ["sanctum"]) @inject(context: "user.id", name: "user_id")
+
+    "Supprimer un commentaire"
+    deleteComment(id: ID! @rules(apply: ["required", "exists:comments,id"])): Comment @delete @guard(with: ["sanctum"]) @can(ability: "delete", find: "id")
 }
