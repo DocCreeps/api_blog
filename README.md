@@ -1,58 +1,506 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🚀 **API REST & GraphQL pour un Blog - Laravel 13**
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+> Une **API moderne** pour gérer un blog avec **REST** et **GraphQL**, incluant des fonctionnalités avancées comme l'authentification, les relations entre modèles, les likes, et les commentaires imbriqués.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 🌟 **Fonctionnalités**
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### **API REST**
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Authentification** : Inscription, connexion, déconnexion avec **Sanctum**.
+- **Gestion des articles** : CRUD complet avec pagination, filtrage par statut, catégorie, ou tag.
+- **Gestion des catégories et tags** : CRUD avec relations Many-to-Many.
+- **Commentaires** : Ajout, suppression, et réponses imbriquées.
+- **Likes** : Système de likes/dislikes pour les articles et commentaires.
+- **Soft Deletes** : Suppression logique pour les articles, commentaires, catégories et tags.
+- **Pagination** : Prise en charge native pour toutes les listes.
 
-## Learning Laravel
+### **GraphQL** (via Lighthouse)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+- **Requêtes flexibles** : Récupération des données avec des filtres avancés (statut, catégorie, recherche).
+- **Mutations** : Création, modification, et suppression des articles, commentaires, catégories et tags.
+- **Relations** : Chargement des relations (ex: `posts` avec leurs `comments`, `tags`, `category`).
+- **Pagination** : Support natif pour les listes paginées.
+- **Sécurité** : Protection des mutations avec des **Policies** et **Sanctum**.
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+## 📦 **Technologies utilisées**
 
-## Agentic Development
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+| Technologie      | Version | Usage                             |
+| ---------------- | ------- | --------------------------------- |
+| **Laravel**      | 13      | Framework principal               |
+| **Sanctum**      | -       | Authentification API              |
+| **Lighthouse**   | -       | GraphQL                           |
+| **Eloquent**     | -       | ORM pour les modèles              |
+| **Soft Deletes** | -       | Suppression logique               |
+
+
+---
+
+## 🛠 **Installation**
+
+### **1. Prérequis**
+
+- PHP 8.1+
+- Composer 2.5+
+- Laravel 13
+- Base de données (MySQL, PostgreSQL, SQLite, etc.)
+
+### **2. Cloner le projet**
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+git clone https://github.com/tu-projet/blog-api-laravel-13.git
+cd blog-api-laravel-13
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### **3. Installer les dépendances**
 
-## Contributing
+```bash
+composer install
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### **4. Configurer l'environnement**
 
-## Code of Conduct
+Copie le fichier `.env.example` et renomme-le en `.env` :
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+cp .env.example .env
+```
 
-## Security Vulnerabilities
+Génère une clé d'application :
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+php artisan key:generate
+```
 
-## License
+### **5. Configurer la base de données**
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Modifie le fichier `.env` pour configurer ta base de données :
+
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=blog_api
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+### **6. Exécuter les migrations**
+
+```bash
+php artisan migrate
+```
+
+### **7. Installer Lighthouse (GraphQL)**
+
+```bash
+composer require nuwave/lighthouse
+php artisan lighthouse:install
+```
+
+### **8. Publier les configurations**
+
+```bash
+php artisan vendor:publish --provider="Nuwave\Lighthouse\LighthouseServiceProvider"
+```
+
+---
+
+## 📂 **Structure du projet**
+
+```
+app/
+├── Enums/
+│   └── PostStatus.php          # Statuts des articles (DRAFT, PUBLISHED, ARCHIVED)
+├── Http/
+│   ├── Controllers/
+│   │   ├── AuthController.php
+│   │   ├── CategoryController.php
+│   │   ├── CommentController.php
+│   │   ├── CommentLikeController.php
+│   │   ├── PostController.php
+│   │   ├── PostLikeController.php
+│   │   └── TagController.php
+│   └── Requests/
+│       ├── StoreCommentRequest.php
+│       ├── StorePostRequest.php
+│       └── UpdatePostRequest.php
+├── Models/
+│   ├── Category.php
+│   ├── Comment.php
+│   ├── Like.php
+│   ├── Post.php
+│   ├── Tag.php
+│   └── User.php
+├── Policies/
+│   ├── CommentPolicy.php
+│   └── PostPolicy.php
+└── graphql/
+    └── schema.graphql          # Schéma GraphQL
+
+routes/
+└── api.php                    # Routes API REST
+
+```
+
+---
+
+## 🔌 **API REST - Endpoints**
+
+### **Authentification**
+
+
+| Méthode | Endpoint    | Description                             |
+| ------- | ----------- | --------------------------------------- |
+| `POST`  | `/register` | Inscription d'un utilisateur            |
+| `POST`  | `/login`    | Connexion d'un utilisateur              |
+| `POST`  | `/logout`   | Déconnexion (nécessite un token valide) |
+
+
+### **Articles**
+
+
+| Méthode  | Endpoint        | Description                                     |
+| -------- | --------------- | ----------------------------------------------- |
+| `GET`    | `/posts`        | Liste des articles publiés (paginés)            |
+| `GET`    | `/posts/{post}` | Détails d'un article                            |
+| `POST`   | `/posts`        | Créer un article (authentification requise)     |
+| `PUT`    | `/posts/{post}` | Modifier un article (authentification requise)  |
+| `DELETE` | `/posts/{post}` | Supprimer un article (authentification requise) |
+
+
+### **Catégories**
+
+
+| Méthode  | Endpoint                 | Description                                        |
+| -------- | ------------------------ | -------------------------------------------------- |
+| `GET`    | `/categories`            | Liste des catégories                               |
+| `GET`    | `/categories/{category}` | Détails d'une catégorie                            |
+| `POST`   | `/categories`            | Créer une catégorie (authentification requise)     |
+| `PUT`    | `/categories/{category}` | Modifier une catégorie (authentification requise)  |
+| `DELETE` | `/categories/{category}` | Supprimer une catégorie (authentification requise) |
+
+
+### **Tags**
+
+
+| Méthode  | Endpoint      | Description                                 |
+| -------- | ------------- | ------------------------------------------- |
+| `GET`    | `/tags`       | Liste des tags                              |
+| `GET`    | `/tags/{tag}` | Détails d'un tag                            |
+| `POST`   | `/tags`       | Créer un tag (authentification requise)     |
+| `PUT`    | `/tags/{tag}` | Modifier un tag (authentification requise)  |
+| `DELETE` | `/tags/{tag}` | Supprimer un tag (authentification requise) |
+
+
+### **Commentaires**
+
+
+| Méthode  | Endpoint                 | Description                                         |
+| -------- | ------------------------ | --------------------------------------------------- |
+| `POST`   | `/posts/{post}/comments` | Ajouter un commentaire (authentification requise)   |
+| `DELETE` | `/comments/{comment}`    | Supprimer un commentaire (authentification requise) |
+
+
+### **Likes**
+
+
+| Méthode | Endpoint                   | Description                                                             |
+| ------- | -------------------------- | ----------------------------------------------------------------------- |
+| `POST`  | `/posts/{post}/like`       | Ajouter/supprimer un like sur un article (authentification requise)     |
+| `POST`  | `/comments/{comment}/like` | Ajouter/supprimer un like sur un commentaire (authentification requise) |
+
+
+---
+
+## 📡 **GraphQL - Schéma**
+
+### **Types**
+
+- **User** : Utilisateur avec ses articles, commentaires et likes.
+- **Post** : Article avec son auteur, catégorie, tags, commentaires et likes.
+- **Category** : Catégorie avec ses articles.
+- **Tag** : Tag avec ses articles.
+- **Comment** : Commentaire avec son auteur, article parent, et réponses.
+
+### **Requêtes (Queries)**
+
+```graphql
+# Récupérer tous les articles publiés
+query {
+  posts(status: PUBLISHED) {
+    data {
+      id
+      title
+      content
+      status
+      user {
+        id
+        name
+      }
+      category {
+        id
+        name
+      }
+      tags {
+        id
+        name
+      }
+      comments {
+        data {
+          id
+          content
+          user {
+            id
+            name
+          }
+        }
+      }
+    }
+    paginatorInfo {
+      total
+      currentPage
+      lastPage
+    }
+  }
+}
+
+# Récupérer un article spécifique
+query {
+  post(id: 1) {
+    id
+    title
+    content
+    user {
+      name
+    }
+    comments {
+      data {
+        id
+        content
+        user {
+          name
+        }
+      }
+    }
+  }
+}
+
+# Récupérer le profil de l'utilisateur connecté
+query {
+  me {
+    id
+    name
+    email
+    posts {
+      data {
+        id
+        title
+      }
+    }
+  }
+}
+```
+
+### **Mutations**
+
+```graphql
+# Créer un article
+mutation {
+  createPost(
+    title: "Mon premier article"
+    content: "Contenu de mon article..."
+    category_id: 1
+    status: PUBLISHED
+    tags: [1, 2]
+  ) {
+    id
+    title
+    status
+  }
+}
+
+# Modifier un article
+mutation {
+  updatePost(
+    id: 1
+    title: "Titre mis à jour"
+    content: "Contenu mis à jour..."
+  ) {
+    id
+    title
+    content
+  }
+}
+
+# Supprimer un article
+mutation {
+  deletePost(id: 1) {
+    id
+  }
+}
+
+# Ajouter un commentaire
+mutation {
+  createComment(
+    post_id: 1
+    content: "Super article !"
+  ) {
+    id
+    content
+  }
+}
+
+# Ajouter un like à un article
+mutation {
+  likePost(id: 1) {
+    id
+  }
+}
+```
+
+---
+
+## 🔐 **Authentification**
+
+### **Sanctum**
+
+- **Inscription** : `POST /register` avec `name`, `email`, `password`, et `password_confirmation`.
+- **Connexion** : `POST /login` avec `email` et `password`. Retourne un **token** à utiliser pour les requêtes protégées.
+- **Déconnexion** : `POST /logout` (nécessite un token valide).
+
+### **Utilisation du token**
+
+Pour les requêtes protégées, ajoute le token dans l'en-tête `Authorization` :
+
+```http
+Authorization: Bearer {ton_token}
+```
+
+---
+
+## 📌 **Exemples d'utilisation**
+
+### **1. Créer un article (REST)**
+
+```bash
+curl -X POST \
+  http://ton-domaine.test/api/posts \
+  -H 'Authorization: Bearer {ton_token}' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "title": "Mon premier article",
+    "content": "Contenu de mon article...",
+    "category_id": 1,
+    "status": "published",
+    "tags": [1, 2]
+  }'
+```
+
+### **2. Récupérer un article avec ses relations (GraphQL)**
+
+```graphql
+query {
+  post(id: 1) {
+    id
+    title
+    content
+    user {
+      name
+    }
+    category {
+      name
+    }
+    tags {
+      name
+    }
+    comments {
+      data {
+        content
+        user {
+          name
+        }
+      }
+    }
+  }
+}
+```
+
+### **3. Ajouter un commentaire (REST)**
+
+```bash
+curl -X POST \
+  http://ton-domaine.test/api/posts/1/comments \
+  -H 'Authorization: Bearer {ton_token}' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "content": "Super article !",
+    "parent_id": null
+  }'
+```
+
+---
+
+## 🛡 **Sécurité**
+
+- **Policies** : Les actions de modification/suppression sont protégées par des **Policies** (ex: seul l'auteur peut modifier/supprimer son article).
+- **Sanctum** : Toutes les routes protégées nécessitent un token valide.
+- **Validation** : Toutes les requêtes sont validées (ex: `StorePostRequest`, `UpdatePostRequest`).
+- **Soft Deletes** : Les modèles utilisent `SoftDeletes` pour éviter la suppression définitive.
+
+---
+
+## 🔧 **Personnalisation**
+
+### **1. Modifier les statuts des articles**
+
+Le statut des articles est géré par un **Enum** (`PostStatus`). Tu peux le modifier dans `app/Enums/PostStatus.php` :
+
+```php
+enum PostStatus: string
+{
+    case DRAFT = 'draft';
+    case PUBLISHED = 'published';
+    case ARCHIVED = 'archived';
+}
+```
+
+### **2. Ajouter des champs aux modèles**
+
+Pour ajouter des champs (ex: `image` pour les articles), modifie les migrations et les modèles :
+
+```php
+// Dans la migration
+$table->string('image')->nullable();
+
+// Dans le modèle Post
+protected $fillable = ['title', 'slug', 'content', 'status', 'user_id', 'category_id', 'image'];
+```
+
+### **3. Personnaliser les requêtes GraphQL**
+
+Modifie le fichier `graphql/schema.graphql` pour ajouter des champs ou des mutations personnalisées.
+
+---
+
+## 📝 **Notes**
+
+- **Pagination** : Toutes les listes sont paginées par défaut (10 éléments par page).
+- **Relations** : Les modèles utilisent **Eloquent** pour gérer les relations (ex: `hasMany`, `belongsTo`, `belongsToMany`).
+- **Soft Deletes** : Les modèles supprimés sont conservés en base de données (utilise `deleted_at` pour les filtrer).
+- **Lighthouse** : Le schéma GraphQL est défini dans `graphql/schema.graphql`.
+
+---
+
+## 🚀 **Améliorations possibles**
+
+- **Cache** : Utiliser **Redis** pour cache les requêtes fréquentes (ex: liste des articles).
+- **Recherche avancée** : Intégrer **Scout** ou **Algolia** pour une recherche full-text.
+- **Notifications** : Ajouter des notifications pour les nouveaux commentaires ou likes.
+- **Rate Limiting** : Limiter le nombre de requêtes par utilisateur.
+- **Webhooks** : Notifier des services externes lors de la création/modification d'articles.
+- **Tests** : Ajouter des tests unitaires et d'intégration pour couvrir toutes les fonctionnalités.
